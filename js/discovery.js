@@ -4,195 +4,172 @@
  * Auto-descubrimiento de pistas y subtítulos.
  *
  * ESTRATEGIA:
- *   1. GitHub Pages  → GitHub Contents API (sin autenticación, 60 req/h)
- *   2. Local (serve) → Parseo del HTML de directory listing
+ *   - Local (localhost / 127.0.0.1) → directory listing de `serve`
+ *   - Cualquier otro hosting (Vercel, GitHub Pages, Netlify…)
+ *     → GitHub Contents API usando CONFIG.github
  *
  * CONVENCIÓN DE NOMBRES:
- *   tracks/mi-cancion.mp3  →  vtt/mi-cancion.vtt
- *   (mismo nombre de archivo, diferente extensión y carpeta)
+ *   tracks/gloria a dios.mp3  →  vtt/gloria a dios.vtt
  *
- * FORMATO DE TÍTULO DESDE NOMBRE DE ARCHIVO:
- *   "artista - nombre cancion.mp3"  →  title: "Nombre Cancion", artist: "Artista"
- *   "nombre cancion.mp3"            →  title: "Nombre Cancion", artist: ""
+ * PARSEO DE TÍTULO DESDE NOMBRE:
+ *   "Artista - Titulo.mp3"  →  artist: "Artista", title: "Titulo"
+ *   "titulo.mp3"            →  artist: "",         title: "Titulo"
  * ─────────────────────────────────────────────────────────────────────────
  */
 
+import { CONFIG } from './config.js';
+
 const Discovery = (() => {
 
-  // Extensiones de audio soportadas
   const AUDIO_EXTENSIONS = ['.mp3', '.ogg', '.wav', '.flac', '.m4a', '.aac', '.opus'];
 
-  // ─── Punto de entrada público ─────────────────────────────────────────
+  // ─── Punto de entrada ─────────────────────────────────────────────────
   async function discoverTracks() {
+    const isLocal = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+
     let audioFiles = [];
 
     try {
-      if (_isGitHubPages()) {
-        audioFiles = await _discoverFromGitHubAPI();
-      } else {
+      if (isLocal) {
+        console.info('[Discovery] Modo local → directory listing');
         audioFiles = await _discoverFromDirectoryListing();
+      } else {
+        console.info('[Discovery] Modo remoto → GitHub API');
+        audioFiles = await _discoverFromGitHubAPI();
       }
     } catch (err) {
-      console.warn('[Discovery] Error en auto-descubrimiento:', err);
+      console.warn('[Discovery] Error en descubrimiento:', err);
       audioFiles = [];
     }
 
     if (!audioFiles.length) {
-      console.info('[Discovery] No se encontraron archivos de audio en tracks/');
+      console.info('[Discovery] No se encontraron archivos de audio.');
       return [];
     }
 
-    // Para cada audio, verificar si existe su VTT correspondiente
     const tracks = await _buildTrackList(audioFiles);
     console.info(`[Discovery] ${tracks.length} pista(s) encontrada(s).`);
     return tracks;
   }
 
-  // ─── Detección de entorno ─────────────────────────────────────────────
-  function _isGitHubPages() {
-    return window.location.hostname.endsWith('github.io');
-  }
-
-  // ─── Estrategia 1: GitHub Contents API ───────────────────────────────
+  // ─── GitHub Contents API ──────────────────────────────────────────────
   async function _discoverFromGitHubAPI() {
-    const { owner, repo, basePath } = _parseGitHubPagesURL();
-    console.info(`[Discovery] GitHub Pages detectado → owner: ${owner}, repo: ${repo}`);
+    const { owner, repo } = CONFIG.github;
 
-    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents`;
-    const tracksPath = basePath ? `${basePath}/tracks` : 'tracks';
+    if (!owner || !repo) {
+      throw new Error('Falta CONFIG.github.owner o CONFIG.github.repo en config.js');
+    }
 
-    const res = await fetch(`${apiBase}/${tracksPath}`, {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/tracks`;
+    console.info(`[Discovery] Consultando: ${url}`);
+
+    const res = await fetch(url, {
       headers: { 'Accept': 'application/vnd.github.v3+json' }
     });
 
+    if (res.status === 403) {
+      const reset = res.headers.get('X-RateLimit-Reset');
+      const resetTime = reset ? new Date(parseInt(reset) * 1000).toLocaleTimeString() : 'desconocido';
+      throw new Error(`GitHub API rate limit alcanzado. Se restablece a las ${resetTime}.`);
+    }
+
     if (!res.ok) {
-      throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
+      throw new Error(`GitHub API devolvió ${res.status}. Verifica owner/repo en config.js`);
     }
 
     const files = await res.json();
 
-    return files
-      .filter(f => f.type === 'file' && _isAudioFile(f.name))
-      .map(f => ({
-        name:     f.name,
-        src:      `${_getBasePath()}/tracks/${f.name}`,
-        vttPath:  `${_getBasePath()}/vtt/${_stripExtension(f.name)}.vtt`
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  }
-
-  function _parseGitHubPagesURL() {
-    const hostname  = window.location.hostname;          // user.github.io
-    const owner     = hostname.replace('.github.io', '');
-    const pathParts = window.location.pathname           // /repo/ o /
-      .split('/')
-      .filter(Boolean);
-    const repo      = pathParts[0] || owner + '.github.io';
-    const basePath  = pathParts.slice(1).join('/');      // sub-ruta si existe
-    return { owner, repo, basePath };
-  }
-
-  function _getBasePath() {
-    // Retorna la base URL relativa al index.html
-    // En GitHub Pages: /repo — en raíz: ''
-    const parts = window.location.pathname.split('/').filter(Boolean);
-    if (_isGitHubPages() && parts.length > 0) {
-      return '/' + parts[0];
+    if (!Array.isArray(files)) {
+      throw new Error('La respuesta de GitHub API no es un array. ¿Existe la carpeta tracks/?');
     }
-    return '.';
+
+    return files
+      .filter(f => f.type === 'file' && _isAudio(f.name))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
+      .map(f => ({
+        name:    f.name,
+        src:     _buildAssetURL('tracks', f.name),
+        vttPath: _buildAssetURL('vtt', _stripExt(f.name) + '.vtt')
+      }));
   }
 
-  // ─── Estrategia 2: Directory listing (local con `serve`) ─────────────
+  // ─── Directory listing local ──────────────────────────────────────────
   async function _discoverFromDirectoryListing() {
-    console.info('[Discovery] Modo local → leyendo directory listing de tracks/');
-
     const res = await fetch('./tracks/');
-    if (!res.ok) throw new Error(`No se puede acceder a tracks/ (HTTP ${res.status})`);
+    if (!res.ok) throw new Error(`No accesible tracks/ (HTTP ${res.status})`);
 
     const html   = await res.text();
     const parser = new DOMParser();
     const doc    = parser.parseFromString(html, 'text/html');
-    const links  = [...doc.querySelectorAll('a[href]')];
 
-    const audioFiles = links
-      .map(a => {
-        // El href puede ser relativo (solo nombre) o absoluto
-        const href = a.getAttribute('href');
-        // Tomar solo el filename, ignorar "../" y paths absolutos
-        const name = href.split('/').pop();
-        return name;
-      })
-      .filter(name => name && _isAudioFile(name))
-      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    return [...doc.querySelectorAll('a[href]')]
+      .map(a => a.getAttribute('href').split('/').pop())
+      .filter(name => name && _isAudio(name))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
       .map(name => ({
         name,
         src:     `./tracks/${name}`,
-        vttPath: `./vtt/${_stripExtension(name)}.vtt`
+        vttPath: `./vtt/${_stripExt(name)}.vtt`
       }));
-
-    return audioFiles;
   }
 
-  // ─── Construcción de la lista final ──────────────────────────────────
+  // ─── Construir URL del asset según el hosting ─────────────────────────
+  function _buildAssetURL(folder, filename) {
+    // Codifica el nombre para URLs (maneja espacios, caracteres especiales)
+    const encoded = filename.split('/').map(encodeURIComponent).join('/');
+
+    // En GitHub Pages el path tiene el repo como prefijo
+    const isGitHubPages = window.location.hostname.endsWith('github.io');
+    if (isGitHubPages) {
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const base      = pathParts.length > 0 ? '/' + pathParts[0] : '';
+      return `${base}/${folder}/${encoded}`;
+    }
+
+    // Vercel, Netlify y cualquier otro hosting estático
+    return `./${folder}/${encoded}`;
+  }
+
+  // ─── Verificar VTTs y construir lista final ───────────────────────────
   async function _buildTrackList(audioFiles) {
-    const tracks = [];
+    // Verificar existencia de VTTs en paralelo (HEAD requests)
+    const vttChecks = await Promise.all(
+      audioFiles.map(async file => {
+        try {
+          const res = await fetch(file.vttPath, { method: 'HEAD' });
+          return res.ok;
+        } catch {
+          return false;
+        }
+      })
+    );
 
-    // Verificar VTTs en paralelo (HEAD requests)
-    const vttChecks = audioFiles.map(async file => {
-      let hasVtt = false;
-      try {
-        const res = await fetch(file.vttPath, { method: 'HEAD' });
-        hasVtt = res.ok;
-      } catch {
-        hasVtt = false;
-      }
-      return hasVtt;
-    });
-
-    const vttResults = await Promise.all(vttChecks);
-
-    audioFiles.forEach((file, i) => {
-      const nameWithoutExt = _stripExtension(file.name);
-      const { title, artist } = _parseTrackMeta(nameWithoutExt);
-
-      tracks.push({
+    return audioFiles.map((file, i) => {
+      const { title, artist } = _parseMeta(_stripExt(file.name));
+      return {
         title,
         artist,
         src:   file.src,
-        vtt:   vttResults[i] ? file.vttPath : null,
-        cover: null   // reservado para futura detección de covers
-      });
+        vtt:   vttChecks[i] ? file.vttPath : null,
+        cover: null
+      };
     });
-
-    return tracks;
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────
+  // ─── Helpers ──────────────────────────────────────────────────────────
 
-  /**
-   * Parsea metadatos desde el nombre del archivo.
-   * Soporta:
-   *   "Artista - Título de la Canción"  → { artist, title }
-   *   "Título de la Canción"            → { artist: '', title }
-   */
-  function _parseTrackMeta(nameWithoutExt) {
-    const separatorMatch = nameWithoutExt.match(/^(.+?)\s*[-–—]\s*(.+)$/);
-    if (separatorMatch) {
+  function _parseMeta(nameWithoutExt) {
+    // "Artista - Título" → separar por primer " - "
+    const match = nameWithoutExt.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+    if (match) {
       return {
-        artist: _humanize(separatorMatch[1].trim()),
-        title:  _humanize(separatorMatch[2].trim())
+        artist: _humanize(match[1].trim()),
+        title:  _humanize(match[2].trim())
       };
     }
-    return {
-      artist: '',
-      title:  _humanize(nameWithoutExt)
-    };
+    return { artist: '', title: _humanize(nameWithoutExt) };
   }
 
-  /**
-   * Convierte un nombre de archivo en un título legible.
-   * "mi-cancion_triste" → "Mi Cancion Triste"
-   */
   function _humanize(str) {
     return str
       .replace(/[-_]+/g, ' ')
@@ -200,18 +177,16 @@ const Discovery = (() => {
       .trim();
   }
 
-  function _stripExtension(filename) {
+  function _stripExt(filename) {
     return filename.replace(/\.[^.]+$/, '');
   }
 
-  function _isAudioFile(filename) {
+  function _isAudio(filename) {
     const lower = filename.toLowerCase();
     return AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
   }
 
-  // ─── API pública ──────────────────────────────────────────────────────
   return { discoverTracks };
-
 })();
 
 export default Discovery;
