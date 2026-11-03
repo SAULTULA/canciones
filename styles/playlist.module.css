@@ -1,0 +1,237 @@
+/* ============================================================
+   playlist.module.css — BEM Block: .playlist
+   Lista de reproducción lateral con estados activo, hover,
+   índices y metadatos de cada pista.
+   ============================================================ */
+
+/* ---------- Block: playlist ---------- */
+.playlist {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* ---------- Element: playlist__header ---------- */
+.playlist__header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.playlist__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.playlist__count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-overlay);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+}
+
+/* ---------- Element: playlist__list ---------- */
+.playlist__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-overlay) transparent;
+}
+
+.playlist__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.playlist__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.playlist__list::-webkit-scrollbar-thumb {
+  background: var(--color-surface-overlay);
+  border-radius: var(--radius-full);
+}
+
+.playlist__list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-dim);
+}
+
+/* ---------- Element: playlist__item ---------- */
+.playlist__item {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.playlist__item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent-dim);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.playlist__item:hover {
+  background: var(--color-surface-raised);
+  border-left-color: var(--color-border-active);
+}
+
+.playlist__item:hover::after {
+  opacity: 0.5;
+}
+
+/* --- Modifier: item--active (pista actual) --- */
+.playlist__item--active {
+  background: var(--color-accent-dim);
+  border-left-color: var(--color-accent);
+}
+
+.playlist__item--active::after {
+  opacity: 1;
+}
+
+/* ---------- Element: playlist__item-cover ---------- */
+.playlist__item-cover {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+
+.playlist__item-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity var(--transition-fast);
+}
+
+.playlist__item-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-secondary) 100%);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+}
+
+/* Overlay de ecualizador animado cuando está activo */
+.playlist__item-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.playlist__item--active .playlist__item-cover-overlay {
+  opacity: 1;
+}
+
+.playlist__equalizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+
+.playlist__equalizer-bar {
+  width: 3px;
+  background: var(--color-accent-light);
+  border-radius: 2px;
+  animation: eq-bounce 0.8s ease-in-out infinite alternate;
+}
+
+.playlist__equalizer-bar:nth-child(1) { animation-delay: 0s;    animation-duration: 0.7s; }
+.playlist__equalizer-bar:nth-child(2) { animation-delay: 0.15s; animation-duration: 0.9s; }
+.playlist__equalizer-bar:nth-child(3) { animation-delay: 0.3s;  animation-duration: 0.65s; }
+.playlist__equalizer-bar:nth-child(4) { animation-delay: 0.1s;  animation-duration: 0.8s; }
+
+@keyframes eq-bounce {
+  from { height: 4px;  opacity: 0.6; }
+  to   { height: 16px; opacity: 1;   }
+}
+
+/* Pausa el ecualizador si no está reproduciendo */
+.playlist__item--paused .playlist__equalizer-bar {
+  animation-play-state: paused;
+}
+
+/* ---------- Element: playlist__item-meta ---------- */
+.playlist__item-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.playlist__item-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: var(--line-height-tight);
+  transition: color var(--transition-fast);
+}
+
+.playlist__item--active .playlist__item-name,
+.playlist__item:hover .playlist__item-name {
+  color: var(--color-text-primary);
+}
+
+.playlist__item-artist {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--transition-fast);
+}
+
+.playlist__item--active .playlist__item-artist {
+  color: var(--color-text-accent);
+}
+
+/* ---------- Element: playlist__item-duration ---------- */
+.playlist__item-duration {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.playlist__item--active .playlist__item-duration {
+  color: var(--color-accent-light);
+}

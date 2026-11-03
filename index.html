@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reproductor web interactivo con subtítulos sincronizados y playlist personalizable. Escucha tus canciones con letras en tiempo real.">
+  <meta name="theme-color" content="#09090f">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Mi Reproductor — Letras Sincronizadas">
+  <meta property="og:description" content="Reproductor de música con letras sincronizadas y playlist interactiva.">
+  <meta property="og:type" content="website">
+
+  <title>Mi Reproductor — Letras Sincronizadas</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./variables.css">
+  <link rel="stylesheet" href="./styles/player.module.css">
+  <link rel="stylesheet" href="./styles/playlist.module.css">
+  <link rel="stylesheet" href="./styles/lyrics.module.css">
+  <link rel="stylesheet" href="./styles/layout.css">
+</head>
+<body>
+
+  <!-- ─── App Shell ─────────────────────────────────────────────────── -->
+  <div class="app" id="app">
+
+    <!-- ─── Loading screen (mientras se descubren los tracks) ──────────── -->
+    <div class="app__loading" id="loading-screen" role="status" aria-live="polite" style="display:none">
+      <div class="app__loading-inner">
+        <div class="app__loading-spinner" aria-hidden="true"></div>
+        <p class="app__loading-text">Cargando playlist…</p>
+      </div>
+    </div>
+
+    <!-- Fondo con gradiente animado -->
+    <div class="app__bg" aria-hidden="true">
+      <div class="app__bg-orb app__bg-orb--1"></div>
+      <div class="app__bg-orb app__bg-orb--2"></div>
+      <div class="app__bg-orb app__bg-orb--3"></div>
+    </div>
+
+    <!-- ─── Header ──────────────────────────────────────────────────── -->
+    <header class="app__header" role="banner">
+      <div class="app__header-inner">
+        <div class="app__logo" aria-label="Mi Reproductor">
+          <span class="app__logo-icon" aria-hidden="true">🎵</span>
+          <span class="app__logo-text">Mi Reproductor</span>
+        </div>
+        <p class="app__tagline">Letras sincronizadas en tiempo real</p>
+      </div>
+    </header>
+
+    <!-- ─── Main Layout ─────────────────────────────────────────────── -->
+    <main class="app__main" id="main-content" role="main">
+
+      <!-- ══ Columna 1: Player ══════════════════════════════════════ -->
+      <section class="player" aria-label="Reproductor de música">
+
+        <!-- Zona de portada e info -->
+        <div class="player__artwork-zone">
+
+          <!-- Portada -->
+          <div class="player__cover" id="player-cover" role="img" aria-label="Portada del álbum">
+            <img
+              class="player__cover-image"
+              id="player-cover-img"
+              src=""
+              alt="Portada del álbum"
+              style="display:none"
+            >
+            <div class="player__cover-placeholder" id="player-cover-placeholder" aria-hidden="true">
+              <span class="player__cover-placeholder-icon">🎵</span>
+            </div>
+          </div>
+
+          <!-- Información de la pista -->
+          <div class="player__info">
+            <h1 class="player__track-title" id="player-track-title">
+              Selecciona una canción
+            </h1>
+            <p class="player__track-artist" id="player-track-artist">
+              Playlist
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="player__progress" role="group" aria-label="Progreso de reproducción">
+          <div
+            class="player__progress-track"
+            id="player-progress-track"
+            role="slider"
+            aria-label="Posición en la pista"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            tabindex="0"
+          >
+            <div class="player__progress-fill" id="player-progress-fill"></div>
+            <div class="player__progress-thumb" id="player-progress-thumb" aria-hidden="true"></div>
+          </div>
+          <div class="player__progress-times" aria-live="off">
+            <span id="player-time-elapsed">00:00</span>
+            <span id="player-time-duration">--:--</span>
+          </div>
+        </div>
+
+        <!-- Controles de transporte -->
+        <div class="player__controls" role="group" aria-label="Controles de reproducción">
+
+          <button
+            class="player__btn player__btn--icon-sm"
+            id="btn-shuffle"
+            aria-label="Aleatorio desactivado"
+            aria-pressed="false"
+            title="Aleatorio"
+          >
+            <span aria-hidden="true">🔀</span>
+          </button>
+
+          <button
+            class="player__btn player__btn--secondary"
+            id="btn-prev"
+            aria-label="Pista anterior"
+            title="Anterior (P)"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
+            </svg>
+          </button>
+
+          <button
+            class="player__btn player__btn--primary"
+            id="btn-play"
+            aria-label="Reproducir"
+            title="Reproducir/Pausar (Espacio)"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+
+          <button
+            class="player__btn player__btn--secondary"
+            id="btn-next"
+            aria-label="Siguiente pista"
+            title="Siguiente (N)"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/>
+            </svg>
+          </button>
+
+          <button
+            class="player__btn player__btn--icon-sm"
+            id="btn-repeat"
+            aria-label="Repetir desactivado"
+            title="Repetir"
+          >
+            <span aria-hidden="true">🔁</span>
+          </button>
+
+        </div>
+
+        <!-- Control de volumen -->
+        <div class="player__volume" role="group" aria-label="Control de volumen">
+          <span class="player__volume-icon" id="volume-icon" aria-hidden="true">🔊</span>
+          <input
+            class="player__volume-slider"
+            id="volume-slider"
+            type="range"
+            min="0"
+            max="1"
+            step="0.02"
+            value="0.8"
+            aria-label="Volumen"
+            title="Volumen (↑↓)"
+          >
+        </div>
+
+      </section>
+
+      <!-- ══ Columna 2: Letras / Subtítulos ═══════════════════════ -->
+      <section class="lyrics" aria-label="Letras sincronizadas" aria-live="polite">
+
+        <!-- Header de letras -->
+        <header class="lyrics__header">
+          <span class="lyrics__header-icon" aria-hidden="true">🎤</span>
+          <h2 class="lyrics__header-title">Letras</h2>
+          <span class="lyrics__header-track-name" id="lyrics-track-name" aria-hidden="true"></span>
+        </header>
+
+        <!-- Cuerpo de letras -->
+        <div class="lyrics__body" id="lyrics-body" role="region" aria-label="Contenido de letras">
+
+          <!-- Estado vacío (se oculta cuando hay letras) -->
+          <div class="lyrics__empty" id="lyrics-empty" aria-live="polite">
+            <span class="lyrics__empty-icon" aria-hidden="true">🎵</span>
+            <p class="lyrics__empty-text">
+              Selecciona una canción para ver las letras sincronizadas.
+            </p>
+          </div>
+
+          <!-- Contenedor de líneas (generado por subtitles.js) -->
+          <div class="lyrics__lines" id="lyrics-lines" role="list" aria-label="Letras de la canción" style="display:none"></div>
+
+        </div>
+
+        <!-- Visualizador waveform decorativo -->
+        <div class="lyrics__waveform" id="lyrics-waveform" aria-hidden="true">
+          <div class="lyrics__waveform-bar" style="--duration:0.7s; height:8px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.5s; height:14px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.9s; height:6px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.6s; height:18px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.8s; height:10px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.45s; height:22px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.75s; height:14px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.55s; height:8px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.85s; height:20px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.65s; height:12px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.4s;  height:6px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.9s;  height:16px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.7s;  height:10px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.5s;  height:22px"></div>
+          <div class="lyrics__waveform-bar" style="--duration:0.6s;  height:8px"></div>
+        </div>
+
+      </section>
+
+      <!-- ══ Columna 3: Playlist ════════════════════════════════════ -->
+      <section class="playlist" aria-label="Lista de reproducción">
+
+        <!-- Header de playlist -->
+        <header class="playlist__header">
+          <h2 class="playlist__title">Playlist</h2>
+          <span class="playlist__count" id="playlist-count" aria-live="polite">0 pistas</span>
+        </header>
+
+        <!-- Lista de pistas (generada por playlist.js) -->
+        <ul
+          class="playlist__list"
+          id="playlist-list"
+          role="listbox"
+          aria-label="Canciones disponibles"
+          aria-multiselectable="false"
+        ></ul>
+
+      </section>
+
+    </main>
+
+    <!-- ─── Footer ───────────────────────────────────────────────────── -->
+    <footer class="app__footer" role="contentinfo">
+      <p class="app__footer-text">
+        <kbd>Espacio</kbd> reproducir · <kbd>←→</kbd> seek ±5s · <kbd>↑↓</kbd> volumen · <kbd>N</kbd> siguiente · <kbd>P</kbd> anterior
+      </p>
+    </footer>
+
+  </div><!-- /.app -->
+
+  <!-- Motor JS (módulo ES6) -->
+  <script type="module" src="./js/player.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+/* ============================================================
+   lyrics.module.css — BEM Block: .lyrics
+   Caja de subtítulos sincronizados. Muestra la línea activa
+   con highlight, fade-in y scroll suave.
+   ============================================================ */
+
+/* ---------- Block: lyrics ---------- */
+.lyrics {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- Element: lyrics__header ---------- */
+.lyrics__header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.lyrics__header-icon {
+  font-size: 1rem;
+  color: var(--color-accent-light);
+  animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.9); }
+}
+
+.lyrics__header-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+  flex: 1;
+}
+
+.lyrics__header-track-name {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* ---------- Element: lyrics__body ---------- */
+.lyrics__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-overlay) transparent;
+}
+
+.lyrics__body::-webkit-scrollbar {
+  width: 4px;
+}
+.lyrics__body::-webkit-scrollbar-thumb {
+  background: var(--color-surface-overlay);
+  border-radius: var(--radius-full);
+}
+
+/* ---------- Element: lyrics__lines (contenedor de todas las líneas) ---------- */
+.lyrics__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---------- Element: lyrics__line ---------- */
+.lyrics__line {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-relaxed);
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  transition: color var(--transition-base),
+              background var(--transition-base),
+              border-color var(--transition-base),
+              transform var(--transition-base);
+}
+
+.lyrics__line:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-raised);
+}
+
+/* --- Modifier: line--active (línea que suena ahora) --- */
+.lyrics__line--active {
+  color: var(--color-text-primary) !important;
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-accent-dim);
+  border-left-color: var(--color-accent);
+  transform: translateX(4px);
+  animation: lyric-fade-in 0.3s ease-out;
+}
+
+@keyframes lyric-fade-in {
+  from {
+    opacity: 0.4;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+}
+
+/* --- Modifier: line--past (líneas ya reproducidas) --- */
+.lyrics__line--past {
+  opacity: 0.4;
+}
+
+/* --- Modifier: line--future (líneas próximas) --- */
+.lyrics__line--future {
+  opacity: 0.65;
+}
+
+/* ---------- Element: lyrics__empty ---------- */
+.lyrics__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.lyrics__empty-icon {
+  font-size: 3rem;
+  opacity: 0.3;
+}
+
+.lyrics__empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
+  max-width: 220px;
+}
+
+/* ---------- Element: lyrics__waveform (visualizador decorativo) ---------- */
+.lyrics__waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: var(--space-4) 0;
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.lyrics__waveform-bar {
+  width: 3px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  opacity: 0.5;
+  transition: height 0.15s ease;
+}
+
+/* Animate waveform when playing */
+.lyrics__waveform--playing .lyrics__waveform-bar {
+  animation: waveform-dance var(--duration, 0.8s) ease-in-out infinite alternate;
+}
+
+@keyframes waveform-dance {
+  from { transform: scaleY(0.15); }
+  to   { transform: scaleY(1); }
+}

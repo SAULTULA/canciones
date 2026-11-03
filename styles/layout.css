@@ -1,0 +1,304 @@
+/* ============================================================
+   layout.css — App Shell & Layout Global
+   Grid principal de 3 columnas, header, footer, fondo animado.
+   ============================================================ */
+
+/* ─── Reset mínimo ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ─── Block: app ────────────────────────────────────────────────────── */
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  position: relative;
+  isolation: isolate;
+}
+
+/* ─── Element: app__bg (orbes decorativos animados) ─────────────────── */
+.app__bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.app__bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.18;
+  animation: orb-drift 20s ease-in-out infinite alternate;
+}
+
+.app__bg-orb--1 {
+  width: 600px;
+  height: 600px;
+  background: var(--color-accent);
+  top: -200px;
+  left: -150px;
+  animation-duration: 18s;
+}
+
+.app__bg-orb--2 {
+  width: 400px;
+  height: 400px;
+  background: var(--color-secondary);
+  bottom: -100px;
+  right: -100px;
+  animation-duration: 24s;
+  animation-direction: alternate-reverse;
+}
+
+.app__bg-orb--3 {
+  width: 300px;
+  height: 300px;
+  background: #ec4899;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-duration: 30s;
+  opacity: 0.08;
+}
+
+@keyframes orb-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(40px, -30px) scale(1.05); }
+  66%  { transform: translate(-20px, 20px) scale(0.97); }
+  100% { transform: translate(30px, 10px) scale(1.03); }
+}
+
+/* ─── Element: app__header ──────────────────────────────────────────── */
+.app__header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app__header-inner {
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.app__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app__logo-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.app__logo-text {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app__tagline {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ─── Element: app__main (grid principal) ───────────────────────────── */
+.app__main {
+  display: grid;
+  grid-template-columns: 280px 1fr var(--sidebar-width);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  max-width: var(--player-max-width);
+  width: 100%;
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* ─── Element: app__footer ──────────────────────────────────────────── */
+.app__footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.app__footer-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.app__footer-text kbd {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--color-text-secondary);
+}
+
+/* ─── Altura mínima de los paneles ──────────────────────────────────── */
+.player {
+  min-height: 520px;
+}
+
+.lyrics {
+  min-height: 520px;
+  max-height: 620px;
+}
+
+.playlist {
+  min-height: 520px;
+  max-height: 620px;
+}
+
+/* ─── Responsive: Tablet (≤900px) ──────────────────────────────────── */
+@media (max-width: 900px) {
+  .app__main {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .player {
+    grid-column: 1 / -1;
+    min-height: auto;
+  }
+
+  .lyrics {
+    max-height: 380px;
+  }
+
+  .playlist {
+    max-height: 380px;
+  }
+}
+
+/* ─── Responsive: Mobile (≤600px) ──────────────────────────────────── */
+@media (max-width: 600px) {
+  .app__main {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .lyrics,
+  .playlist {
+    max-height: 320px;
+  }
+
+  .app__header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .app__tagline {
+    display: none;
+  }
+}
+
+/* ─── Accesibilidad: focus visible ──────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent-light);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Selección de texto ────────────────────────────────────────────── */
+::selection {
+  background: var(--color-accent-dim);
+  color: var(--color-text-primary);
+}
+
+/* ─── Loading screen ────────────────────────────────────────────────── */
+.app__loading {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app__loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.app__loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--color-surface-raised);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.app__loading-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+}
+
+/* ─── Badge VTT en playlist ─────────────────────────────────────────── */
+.playlist__item-vtt {
+  font-size: 0.65rem;
+  display: inline-block;
+  margin-left: var(--space-1);
+  opacity: 0.7;
+  vertical-align: middle;
+  transition: opacity var(--transition-fast);
+}
+
+.playlist__item:hover .playlist__item-vtt,
+.playlist__item--active .playlist__item-vtt {
+  opacity: 1;
+}

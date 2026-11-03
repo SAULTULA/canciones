@@ -1,0 +1,99 @@
+/* ============================================================
+   DESIGN TOKENS — Reproductor Web con Subtítulos
+   Archivo central de variables CSS. No modificar directamente
+   los valores en los componentes; siempre usar estas variables.
+   ============================================================ */
+
+:root {
+  /* --- Paleta de colores base --- */
+  --color-bg:               #09090f;
+  --color-surface:          #111118;
+  --color-surface-raised:   #1a1a26;
+  --color-surface-overlay:  #20202e;
+  --color-border:           rgba(255, 255, 255, 0.07);
+  --color-border-active:    rgba(124, 58, 237, 0.6);
+
+  /* --- Acento principal (violeta) --- */
+  --color-accent:           #7c3aed;
+  --color-accent-light:     #9f67f5;
+  --color-accent-dim:       rgba(124, 58, 237, 0.18);
+  --color-accent-glow:      rgba(124, 58, 237, 0.35);
+
+  /* --- Acento secundario (cyan eléctrico) --- */
+  --color-secondary:        #06b6d4;
+  --color-secondary-dim:    rgba(6, 182, 212, 0.15);
+
+  /* --- Tipografía --- */
+  --color-text-primary:     #eeeef8;
+  --color-text-secondary:   #a0a0c0;
+  --color-text-muted:       #5a5a80;
+  --color-text-accent:      #c4a5fa;
+
+  /* --- Estados --- */
+  --color-success:          #10b981;
+  --color-warning:          #f59e0b;
+
+  /* --- Tipografía --- */
+  --font-main:              'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:              'JetBrains Mono', 'Fira Code', monospace;
+
+  --font-size-xs:           clamp(0.65rem, 1vw, 0.75rem);
+  --font-size-sm:           clamp(0.75rem, 1.2vw, 0.875rem);
+  --font-size-base:         clamp(0.875rem, 1.5vw, 1rem);
+  --font-size-md:           clamp(1rem, 1.8vw, 1.125rem);
+  --font-size-lg:           clamp(1.125rem, 2vw, 1.375rem);
+  --font-size-xl:           clamp(1.375rem, 2.5vw, 1.75rem);
+  --font-size-2xl:          clamp(1.75rem, 3.5vw, 2.25rem);
+
+  --font-weight-normal:     400;
+  --font-weight-medium:     500;
+  --font-weight-semibold:   600;
+  --font-weight-bold:       700;
+
+  --line-height-tight:      1.2;
+  --line-height-normal:     1.5;
+  --line-height-relaxed:    1.75;
+
+  /* --- Espaciado --- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Bordes y radios --- */
+  --radius-sm:    8px;
+  --radius-md:    12px;
+  --radius-lg:    16px;
+  --radius-xl:    24px;
+  --radius-full:  9999px;
+
+  /* --- Sombras --- */
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:    0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,0.6);
+  --shadow-glow:  0 0 24px var(--color-accent-glow);
+  --shadow-card:  0 2px 1px rgba(255,255,255,0.03) inset,
+                  0 8px 32px rgba(0,0,0,0.6);
+
+  /* --- Transiciones --- */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Glassmorphism --- */
+  --glass-bg:     rgba(20, 20, 32, 0.75);
+  --glass-blur:   blur(20px);
+  --glass-border: 1px solid rgba(255,255,255,0.08);
+
+  /* --- Layout --- */
+  --player-max-width: 1100px;
+  --sidebar-width:    340px;
+  --controls-height:  96px;
+}
